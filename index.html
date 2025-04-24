@@ -89,30 +89,31 @@
     });
   }
 
-  function selectTravelMode(rate, mode) {
-    const displayPrice = totalDistance * rate;
-    let actualPrice = displayPrice;
+function selectTravelMode(rate, mode) {
+  let displayPrice = totalDistance * rate;
+  let adjustedPrice = displayPrice;
 
-    if (mode === "Personal Car") {
-      actualPrice = displayPrice / 3.5;
-    } else if (mode === "Personal Bike") {
-      actualPrice = displayPrice / 1.6;
-    }
-
-    // Show the full rate price in the UI
-    document.getElementById("priceText").innerText = `Estimated base travel cost: ₹${displayPrice.toFixed(2)} (${totalDistance.toFixed(2)} km × ${rate})`;
-
-    // Store adjusted values
-    travelData["mode"] = mode;
-    travelData["cost"] = actualPrice.toFixed(2);
-    travelData["distance"] = totalDistance.toFixed(2);
-
-    // Wait 1 second then continue to next step
-    setTimeout(() => {
-      document.getElementById("popup").style.display = "none";
-      showQuestionPopup();
-    }, 1000);
+  if (mode === "Personal Car") {
+    adjustedPrice = displayPrice / 3.5;
+  } else if (mode === "Personal Bike") {
+    adjustedPrice = displayPrice / 1.6;
   }
+
+  // Store adjusted data for final budget calculation
+  travelData["mode"] = mode;
+  travelData["cost"] = adjustedPrice.toFixed(2);
+  travelData["distance"] = totalDistance.toFixed(2);
+
+  // Show price to user (only displayPrice, clean)
+  document.getElementById("priceText").innerText = `Estimated transportation cost: ₹${displayPrice.toFixed(2)}`;
+
+  // Move to next step after showing price briefly
+  setTimeout(() => {
+    document.getElementById("popup").style.display = "none";
+    showQuestionPopup();
+  }, 1000);
+}
+
 
   function showQuestionPopup() {
     currentQuestionIndex = 0;

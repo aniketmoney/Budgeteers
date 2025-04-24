@@ -104,7 +104,7 @@
     },
     {
      text: "What is your preferred travel style?",
-     options: ["Budget", "Luxury", "Backpacking"]
+     options: ["Budget", "Backpaching", "Luxury"]
     },
     {
      text: "Number of days you want to stay",
@@ -141,9 +141,13 @@
      if (answer === "2") {
       numberOfPeople = 2;
      } else if (answer === "3") {
-      numberOfPeople = 3; // Assuming 3 friends
-     } else if (answer === "More than 5") {
-      numberOfPeople = 6; // Assuming a minimum of 6
+      numberOfPeople = 3; 
+     }else if (answer === "4") {
+      numberOfPeople = 4; 
+     } else if (answer === "5") {
+      numberOfPeople = 5;
+     }else if (answer === "More than 5") {
+      numberOfPeople = 8; // Assuming a minimum of 6
      }
      travelData["numberOfPeople"] = numberOfPeople;
 

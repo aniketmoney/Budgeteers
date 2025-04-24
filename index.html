@@ -92,20 +92,19 @@
     function selectTravelMode(rate, mode) {
       let price = totalDistance * rate;
       
-      // Adjust price based on selected mode
+      // Adjust price for future use based on selected mode
       if (mode === "Personal Car") {
-        price /= 4; // Divide by 4 for car
+        price /= 3.5; // Divide by 4 for car
       } else if (mode === "Personal Bike") {
-        price /= 2; // Divide by 2 for bike
+        price /= 1.6; // Divide by 2 for bike
       }
 
+      // Store adjusted data to travelData for future steps
       travelData["mode"] = mode;
       travelData["cost"] = price.toFixed(2);
       travelData["distance"] = totalDistance.toFixed(2);
-      document.getElementById("basePrice").value = price.toFixed(2);
 
-      document.getElementById("priceText").innerText = `Estimated cost: ₹${price.toFixed(2)}`;
-      
+      // Do not display the price right now, just move to the next question
       setTimeout(() => {
         document.getElementById("popup").style.display = "none";
         showQuestionPopup();
@@ -151,10 +150,9 @@
         else if (answer === "More than 5") num = 8;
 
         travelData["numberOfPeople"] = num;
-
         const baseCost = parseFloat(travelData["cost"]);
         if (!isNaN(baseCost)) {
-          const perPerson = baseCost ;
+          const perPerson = baseCost;
           travelData["perPersonTransportationCost"] = perPerson.toFixed(2);
         }
       }

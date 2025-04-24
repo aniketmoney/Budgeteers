@@ -90,7 +90,15 @@
     }
 
     function selectTravelMode(rate, mode) {
-      const price = totalDistance * rate;
+      let price = totalDistance * rate;
+      
+      // Adjust price based on selected mode
+      if (mode === "Personal Car") {
+        price /= 4; // Divide by 4 for car
+      } else if (mode === "Personal Bike") {
+        price /= 2; // Divide by 2 for bike
+      }
+
       travelData["mode"] = mode;
       travelData["cost"] = price.toFixed(2);
       travelData["distance"] = totalDistance.toFixed(2);

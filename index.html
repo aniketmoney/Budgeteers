@@ -99,8 +99,8 @@
 
    const questions = [
     {
-     text: "How are you traveling?",
-     options: ["Solo", "With Family of 4", "With Friends", "More than 5"]
+     text: "How many people are travelling in total?",
+     options: ["1", "2", "3", "4","5","More than 5"]
     },
     {
      text: "What is your preferred travel style?",
@@ -136,11 +136,11 @@
    function saveAnswer(question, answer) {
     travelData[question] = answer;
 
-    if (question === "How are you traveling?") {
+    if (question === "How many people are travelling in total?") {
      let numberOfPeople = 1;
-     if (answer === "With Family of 4") {
-      numberOfPeople = 4;
-     } else if (answer === "With Friends") {
+     if (answer === "2") {
+      numberOfPeople = 2;
+     } else if (answer === "3") {
       numberOfPeople = 3; // Assuming 3 friends
      } else if (answer === "More than 5") {
       numberOfPeople = 6; // Assuming a minimum of 6
@@ -176,15 +176,15 @@
       const minDays = daysRange[0];
 
       if (minDays >= 1 && minDays <= 3) {
-       daysMultiplier = 2;
+       daysMultiplier = 3;
       } else if (minDays >= 4 && minDays <= 6) {
-       daysMultiplier = 4;
-      } else if (minDays >= 7 && minDays <= 9) {
        daysMultiplier = 5;
-      } else if (minDays >= 10 && minDays <= 12) {
+      } else if (minDays >= 7 && minDays <= 9) {
        daysMultiplier = 8;
+      } else if (minDays >= 10 && minDays <= 12) {
+       daysMultiplier =10;
       } else if (minDays >= 13 && minDays <= 15) {
-       daysMultiplier = 10;
+       daysMultiplier = 12;
       }
 
       const finalEstimatedCost = styleAdjustedCost * daysMultiplier;

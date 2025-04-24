@@ -48,166 +48,170 @@
     <button onclick="closeFinalBudgetPopup()">Close</button>
   </div>
 
-  <script>
-    let totalDistance = 0;
-    let travelData = {};
-    let currentQuestionIndex = 0;
+<script>
+  let totalDistance = 0;
+  let travelData = {};
+  let currentQuestionIndex = 0;
 
-    const questions = [
-      {
-        text: "How many people are travelling in total?",
-        options: ["1", "2", "3", "4", "5", "More than 5"]
-      },
-      {
-        text: "What is your preferred travel style?",
-        options: ["Budget", "Backpacking", "Luxury"]
-      },
-      {
-        text: "Number of days you want to stay",
-        options: ["1-3", "4-6", "7-9", "10-12", "13-15"]
-      }
-    ];
-
-    function calculateDistance() {
-      const from = document.getElementById("from").value;
-      const to = document.getElementById("to").value;
-      const service = new google.maps.DistanceMatrixService();
-
-      service.getDistanceMatrix({
-        origins: [from],
-        destinations: [to],
-        travelMode: 'DRIVING'
-      }, (response, status) => {
-        if (status !== 'OK' || !response.rows[0].elements[0].distance) {
-          alert("Error calculating distance. Please try again.");
-          return;
-        }
-
-        totalDistance = response.rows[0].elements[0].distance.value / 1000; // meters to km
-        document.getElementById("distanceText").innerText = `Total distance is ${totalDistance.toFixed(2)} km`;
-        document.getElementById("popup").style.display = "block";
-      });
+  const questions = [
+    {
+      text: "How many people are travelling in total?",
+      options: ["1", "2", "3", "4", "5", "More than 5"]
+    },
+    {
+      text: "What is your preferred travel style?",
+      options: ["Budget", "Backpacking", "Luxury"]
+    },
+    {
+      text: "Number of days you want to stay",
+      options: ["1-3", "4-6", "7-9", "10-12", "13-15"]
     }
+  ];
 
-    function selectTravelMode(rate, mode) {
-      let price = totalDistance * rate;
-      
-      // Adjust price for future use based on selected mode
-      if (mode === "Personal Car") {
-        price /= 3.5; // Divide by 4 for car
-      } else if (mode === "Personal Bike") {
-        price /= 1.6; // Divide by 2 for bike
-      }
+  function calculateDistance() {
+    const from = document.getElementById("from").value;
+    const to = document.getElementById("to").value;
+    const service = new google.maps.DistanceMatrixService();
 
-      // Store adjusted data to travelData for future steps
-      travelData["mode"] = mode;
-      travelData["cost"] = price.toFixed(2);
-      travelData["distance"] = totalDistance.toFixed(2);
-
-      // Do not display the price right now, just move to the next question
-      setTimeout(() => {
-        document.getElementById("popup").style.display = "none";
-        showQuestionPopup();
-      }, 1000);
-    }
-
-    function showQuestionPopup() {
-      currentQuestionIndex = 0;
-      document.getElementById("questionPopup").style.display = "block";
-      displayQuestion();
-    }
-
-    function displayQuestion() {
-      if (currentQuestionIndex >= questions.length) {
-        document.getElementById("questionPopup").style.display = "none";
-        showFinalBudgetPopup();
+    service.getDistanceMatrix({
+      origins: [from],
+      destinations: [to],
+      travelMode: 'DRIVING'
+    }, (response, status) => {
+      if (status !== 'OK' || !response.rows[0].elements[0].distance) {
+        alert("Error calculating distance. Please try again.");
         return;
       }
 
-      const q = questions[currentQuestionIndex];
-      document.getElementById("questionText").innerText = q.text;
+      totalDistance = response.rows[0].elements[0].distance.value / 1000; // meters to km
+      document.getElementById("distanceText").innerText = `Total distance is ${totalDistance.toFixed(2)} km`;
+      document.getElementById("popup").style.display = "block";
+    });
+  }
 
-      const optionsContainer = document.getElementById("options");
-      optionsContainer.innerHTML = "";
+  function selectTravelMode(rate, mode) {
+    const displayPrice = totalDistance * rate;
+    let actualPrice = displayPrice;
 
-      q.options.forEach(option => {
-        const btn = document.createElement("button");
-        btn.innerText = option;
-        btn.onclick = () => saveAnswer(q.text, option);
-        optionsContainer.appendChild(btn);
-      });
+    if (mode === "Personal Car") {
+      actualPrice = displayPrice / 3.5;
+    } else if (mode === "Personal Bike") {
+      actualPrice = displayPrice / 1.6;
     }
 
-    function saveAnswer(question, answer) {
-      travelData[question] = answer;
+    // Show the full rate price in the UI
+    document.getElementById("priceText").innerText = `Estimated base travel cost: ₹${displayPrice.toFixed(2)} (${totalDistance.toFixed(2)} km × ${rate})`;
 
-      if (question === "How many people are travelling in total?") {
-        let num = 1;
-        if (answer === "2") num = 2;
-        else if (answer === "3") num = 3;
-        else if (answer === "4") num = 4;
-        else if (answer === "5") num = 5;
-        else if (answer === "More than 5") num = 8;
+    // Store adjusted values
+    travelData["mode"] = mode;
+    travelData["cost"] = actualPrice.toFixed(2);
+    travelData["distance"] = totalDistance.toFixed(2);
 
-        travelData["numberOfPeople"] = num;
-        const baseCost = parseFloat(travelData["cost"]);
-        if (!isNaN(baseCost)) {
-          const perPerson = baseCost;
-          travelData["perPersonTransportationCost"] = perPerson.toFixed(2);
-        }
-      }
-
-      if (question === "What is your preferred travel style?") {
-        const perPerson = parseFloat(travelData["perPersonTransportationCost"]);
-        if (!isNaN(perPerson)) {
-          let multiplier = answer === "Budget" ? 4 : answer === "Backpacking" ? 6 : 8;
-          travelData["styleAdjustedCost"] = (perPerson * multiplier).toFixed(2);
-        }
-      }
-
-      if (question === "Number of days you want to stay") {
-        const styleCost = parseFloat(travelData["styleAdjustedCost"]);
-        if (!isNaN(styleCost)) {
-          let daysMultiplier = 1;
-          const daysRange = answer.split('-').map(Number);
-          const minDays = daysRange[0];
-
-          if (minDays >= 1 && minDays <= 3) daysMultiplier = 3;
-          else if (minDays >= 4 && minDays <= 6) daysMultiplier = 5;
-          else if (minDays >= 7 && minDays <= 9) daysMultiplier = 8;
-          else if (minDays >= 10 && minDays <= 12) daysMultiplier = 10;
-          else if (minDays >= 13) daysMultiplier = 12;
-
-          travelData["finalEstimatedCost"] = (styleCost * daysMultiplier).toFixed(2);
-        }
-      }
-
-      localStorage.setItem("travelData", JSON.stringify(travelData));
-      currentQuestionIndex++;
-      displayQuestion();
-    }
-
-    function showFinalBudgetPopup() {
-      const cost = travelData["finalEstimatedCost"];
-      if (cost) {
-        document.getElementById("finalBudgetAmount").innerText = `₹${cost}`;
-        document.getElementById("finalBudgetPopup").style.display = "block";
-      } else {
-        alert("Unable to calculate final budget.");
-      }
-    }
-
-    function closePopup() {
+    // Wait 1 second then continue to next step
+    setTimeout(() => {
       document.getElementById("popup").style.display = "none";
+      showQuestionPopup();
+    }, 1000);
+  }
+
+  function showQuestionPopup() {
+    currentQuestionIndex = 0;
+    document.getElementById("questionPopup").style.display = "block";
+    displayQuestion();
+  }
+
+  function displayQuestion() {
+    if (currentQuestionIndex >= questions.length) {
+      document.getElementById("questionPopup").style.display = "none";
+      showFinalBudgetPopup();
+      return;
     }
 
-    function closeFinalBudgetPopup() {
-      document.getElementById("finalBudgetPopup").style.display = "none";
+    const q = questions[currentQuestionIndex];
+    document.getElementById("questionText").innerText = q.text;
+
+    const optionsContainer = document.getElementById("options");
+    optionsContainer.innerHTML = "";
+
+    q.options.forEach(option => {
+      const btn = document.createElement("button");
+      btn.innerText = option;
+      btn.onclick = () => saveAnswer(q.text, option);
+      optionsContainer.appendChild(btn);
+    });
+  }
+
+  function saveAnswer(question, answer) {
+    travelData[question] = answer;
+
+    if (question === "How many people are travelling in total?") {
+      let num = 1;
+      if (answer === "2") num = 2;
+      else if (answer === "3") num = 3;
+      else if (answer === "4") num = 4;
+      else if (answer === "5") num = 5;
+      else if (answer === "More than 5") num = 8;
+
+      travelData["numberOfPeople"] = num;
+      const baseCost = parseFloat(travelData["cost"]);
+      if (!isNaN(baseCost)) {
+        const perPerson = baseCost;
+        travelData["perPersonTransportationCost"] = perPerson.toFixed(2);
+      }
     }
 
-    function nextQuestion() {
-      displayQuestion();
+    if (question === "What is your preferred travel style?") {
+      const perPerson = parseFloat(travelData["perPersonTransportationCost"]);
+      if (!isNaN(perPerson)) {
+        let multiplier = answer === "Budget" ? 4 : answer === "Backpacking" ? 6 : 8;
+        travelData["styleAdjustedCost"] = (perPerson * multiplier).toFixed(2);
+      }
     }
-  </script>
+
+    if (question === "Number of days you want to stay") {
+      const styleCost = parseFloat(travelData["styleAdjustedCost"]);
+      if (!isNaN(styleCost)) {
+        let daysMultiplier = 1;
+        const daysRange = answer.split('-').map(Number);
+        const minDays = daysRange[0];
+
+        if (minDays >= 1 && minDays <= 3) daysMultiplier = 3;
+        else if (minDays >= 4 && minDays <= 6) daysMultiplier = 5;
+        else if (minDays >= 7 && minDays <= 9) daysMultiplier = 8;
+        else if (minDays >= 10 && minDays <= 12) daysMultiplier = 10;
+        else if (minDays >= 13) daysMultiplier = 12;
+
+        travelData["finalEstimatedCost"] = (styleCost * daysMultiplier).toFixed(2);
+      }
+    }
+
+    localStorage.setItem("travelData", JSON.stringify(travelData));
+    currentQuestionIndex++;
+    displayQuestion();
+  }
+
+  function showFinalBudgetPopup() {
+    const cost = travelData["finalEstimatedCost"];
+    if (cost) {
+      document.getElementById("finalBudgetAmount").innerText = `₹${cost}`;
+      document.getElementById("finalBudgetPopup").style.display = "block";
+    } else {
+      alert("Unable to calculate final budget.");
+    }
+  }
+
+  function closePopup() {
+    document.getElementById("popup").style.display = "none";
+  }
+
+  function closeFinalBudgetPopup() {
+    document.getElementById("finalBudgetPopup").style.display = "none";
+  }
+
+  function nextQuestion() {
+    displayQuestion();
+  }
+</script>
+
 </body>
 </html>
